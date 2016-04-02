@@ -1,9 +1,10 @@
 /*
-*   date: 23.03.2016
+*   date: 02.04.2016
 *
 *   Author: Adam Allaf
 *
 *   Using timer0 to generate PWM on P1.6 (green LED)
+*   & button on P1.3 to toggle P1.0 (red LED)
 *   with cpu in sleep mode (LPM0).
 */
 #include <msp430.h>
@@ -19,13 +20,21 @@ int main(){
     DCOCTL = CALDCO_1MHZ;
     BCSCTL1 = CALBC1_1MHZ;
 
-    P1DIR |= BIT6;
-
     P1SEL |= BIT6;
     P1SEL2 &= ~BIT6;
 
+    P1DIR = 0;
+    P1DIR |= BIT6 | BIT0;
+    P1OUT &= ~BIT0;
+
+    P1REN |= BIT3;      // enable pullup/pulldown resistor
+    P1OUT |= BIT3;      // P1.3 is pulled up
+    P1IE |= BIT3;       // Interrupt enable for P1.3
+    P1IES |= BIT3;      // Interrupt edge enable, IFG set with a high to low transition
+    P1IFG &= ~BIT3;     // clear P1.3 interrupt flag
+
     TA0CCR0 = 0x3e8;    // T = 1ms
-    TA0CCR1 = 0x3e8;
+    TA0CCR1 = 0x3e8;    // 100% duty cycle
     counter = 0x3e8;
     updown = 0;         // start counting down
 
@@ -44,7 +53,7 @@ int main(){
 }
 
 
-void __attribute__((interrupt(TIMER0_A0_VECTOR))) Timer0_A0_int()
+void __attribute__((interrupt(TIMER0_A0_VECTOR))) Timer0_A0_Int()
 {
     TA0CTL &= ~1;       // clear timer interrupt flag
     if(updown)
@@ -56,4 +65,11 @@ void __attribute__((interrupt(TIMER0_A0_VECTOR))) Timer0_A0_int()
     if(counter == 0)
         updown = 1;
     TA0CCR1 = counter;
+}
+
+
+void __attribute__((interrupt(PORT1_VECTOR))) Port1_Int()
+{
+    P1OUT ^= BIT0;      // toggle P1.0 red LED
+    P1IFG &= ~BIT3;     // clear P1.3 interrupt flag
 }
