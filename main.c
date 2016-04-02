@@ -1,34 +1,58 @@
 /*
-*   date: 03.03.2016
+*   date: 06.03.2016
 *
 *   Author: Adam Allaf
 *
-*   Blinky, P1.0 & P1.6 (red & green LED).
+*   Using timer1 to generate PWM on P2.1.
 */
 #include <msp430.h>
 
-#define LED_DIR     P1DIR
-#define LED_OUT     P1OUT
 
-#define LED_RED     BIT0
-#define LED_GREEN   BIT6
-
-
-unsigned int i;
+volatile unsigned int updown, counter;
 
 
 int main(){
-    WDTCTL = WDTPW | WDTHOLD;
+    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog
+
+    // 1MHz clock
     DCOCTL = CALDCO_1MHZ;
     BCSCTL1 = CALBC1_1MHZ;
-    LED_DIR |= LED_RED;
-    LED_DIR |= LED_GREEN;
-    LED_OUT &= ~LED_RED;
-    LED_OUT |= LED_GREEN;
-    for(;;){
-        LED_OUT ^= LED_RED | LED_GREEN;
-        i = 0;
-        while(i < 0x8000) i++;
-    }
+
+    P2DIR |= BIT1;
+
+    P2SEL |= BIT1;
+    P2SEL2 &= ~BIT1;
+
+    TA1CCR0 = 0x3e8;    // T = 1ms
+    TA1CCR1 = 0x3e8;
+    counter = 0x3e8;
+    updown = 0;         // start counting down
+
+    // timer1 init
+    // ID_0 -> /1 divider
+    // MC_1 -> up mode, count up to CCR0
+    // TASSEL_2 -> SMCLK as timer clock source
+    TA1CTL |= TASSEL_2 | ID_0 | MC_1 | TAIE;
+    TA1CCTL0 |= CCIE;   // when timer count fron CCR0 ot 0x0 an interrupt is generated
+    TA1CCTL1 |= OUTMOD_2;  // set/reset mode, set on CCR1 and reset on CCR0
+
+    WRITE_SR(CPUOFF | GIE);     // set cpu in LMP0
+
+    for(;;);
     return 0;
+}
+
+
+void __attribute__((interrupt(TIMER1_A0_VECTOR))) Timer1_A0_int()
+{
+    TA1CTL &= ~1;       // clear timer interrupt flag
+    if(updown)
+        counter++;
+    else
+        counter--;
+    if(counter >= TA1CCR0)
+        updown = 0;
+    if(counter == 0)
+        updown = 1;
+    TA1CCR1 = counter;
 }
