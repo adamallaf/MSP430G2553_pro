@@ -1,12 +1,13 @@
 CC = msp430-gcc
+DEBUG = mspdebug
 
 MCU = msp430g2553
 
-DEBUG = -g
+DEBUGINFO = -g
 
 OPT = -O2
 
-CFLAGS = $(OPT) -Wall $(DEBUG) -mmcu=$(MCU)
+CFLAGS = $(OPT) -Wall $(DEBUGINFO) -mmcu=$(MCU)
 ASM = -D_GNU_ASSEMBLER_
 
 BIN = $(MCU)_out.elf
@@ -23,6 +24,9 @@ msp430-project: $(OBJS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
+
+install: $(TARGET)
+	$(DEBUG) rf2500 "prog $(BIN)"
 
 clean:
 	$(RM) $(BIN) $(OBJS)
