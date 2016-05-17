@@ -8,11 +8,9 @@
 	.mpy    none
 
 	.text
-.global	Port1_ISR
 /***********************
- * Interrupt Vector 2 Service Routine `Port1_ISR' 
+ * Interrupt Vector 2 Service Routine
  ***********************/
-Port1_ISR:
 .global	__isr_2
 __isr_2:
     xor.b   #1, &__P1OUT
