@@ -54,7 +54,7 @@ int main(){
 }
 
 
-void __attribute__((interrupt(TIMER0_A0_VECTOR))) Timer0_A0_Int()
+void __attribute__((interrupt(TIMER0_A0_VECTOR))) Timer0_A0_ISR()
 {
     TA0CTL &= ~1;       // clear timer interrupt flag
     if(updown)
