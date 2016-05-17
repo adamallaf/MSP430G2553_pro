@@ -47,7 +47,7 @@ int main(){
     TA0CCTL0 |= CCIE;   // when timer count fron CCR0 ot 0x0 an interrupt is generated
     TA0CCTL1 |= OUTMOD_2;  // set/reset mode, set on CCR1 and reset on CCR0
 
-    WRITE_SR(CPUOFF | GIE);     // set cpu in LMP0
+    WRITE_SR(CPUOFF | GIE);     // set cpu in LPM0
 
     for(;;);
     return 0;
@@ -66,11 +66,4 @@ void __attribute__((interrupt(TIMER0_A0_VECTOR))) Timer0_A0_Int()
     if(counter == 0)
         updown = 1;
     TA0CCR1 = counter << 4;
-}
-
-
-void __attribute__((interrupt(PORT1_VECTOR))) Port1_Int()
-{
-    P1OUT ^= BIT0;      // toggle P1.0 red LED
-    P1IFG &= ~BIT3;     // clear P1.3 interrupt flag
 }
