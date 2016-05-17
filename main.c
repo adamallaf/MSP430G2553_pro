@@ -1,12 +1,12 @@
 /*
 *   date:   02.04.2016
-*   update: 17.05.2016
+*   update: 18.05.2016
 *
 *   Author: Adam Allaf
 *
 *   Using timer0 to generate PWM on P1.6 (green LED)
 *   & button on P1.3 to toggle P1.0 (red LED)
-*   with cpu@16MHz in sleep mode (LPM0).
+*   with cpu@1MHz in sleep mode (LPM0).
 */
 #include <msp430.h>
 
@@ -17,9 +17,9 @@ volatile unsigned int updown, counter;
 int main(){
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog
 
-    // 16MHz clock
-    BCSCTL1 = CALBC1_16MHZ;
-    DCOCTL = CALDCO_16MHZ;
+    // 1MHz clock
+    BCSCTL1 = CALBC1_1MHZ;
+    DCOCTL = CALDCO_1MHZ;
 
     P1SEL |= BIT6;
     P1SEL2 &= ~BIT6;
@@ -34,8 +34,8 @@ int main(){
     P1IES |= BIT3;      // Interrupt edge enable, IFG set with a high to low transition
     P1IFG &= ~BIT3;     // clear P1.3 interrupt flag
 
-    TA0CCR0 = 0x3e80;    // T = 1ms
-    TA0CCR1 = 0x3e80;    // 100% duty cycle
+    TA0CCR0 = 0x3e8;    // T = 1ms
+    TA0CCR1 = 0x3e8;    // 100% duty cycle
     counter = 0x3e8;
     updown = 0;         // start counting down
 
@@ -61,9 +61,9 @@ void __attribute__((interrupt(TIMER0_A0_VECTOR))) Timer0_A0_ISR()
         counter++;
     else
         counter--;
-    if((counter << 4) >= TA0CCR0)
+    if(counter >= TA0CCR0)
         updown = 0;
     if(counter == 0)
         updown = 1;
-    TA0CCR1 = counter << 4;
+    TA0CCR1 = counter;
 }
