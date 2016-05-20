@@ -2,7 +2,6 @@
  * date:    17.05.2016
  * Author:  Adam Allaf
  ***********************/
-    .file   "port1_isr.s"
     .arch   msp430g2553
     .cpu    430
     .mpy    none
