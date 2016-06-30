@@ -12,7 +12,8 @@
  ***********************/
 .global __isr_2
 __isr_2:
-    xor.b   #1, &__P1OUT
-    and.b   #0xf7, &__P1IFG
-    reti
+    XOR.B   #1, &__P1OUT
+    AND.B   #0xf7, &__P1IFG
+    RETI
 
+    .end
